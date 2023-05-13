@@ -67,7 +67,7 @@ public:
             this->root = node;
             return;
         }
-        while (last->next != nullptr)
+        while (last->get_next() != nullptr)
             last = last->get_next();
         node->set_prev(last);
         last->set_next(node);
@@ -88,14 +88,13 @@ public:
 
     void DeleteLinkedList()
     {
-        Node <T> *now = this->root, *prev = this.root;
+        Node <T> *now = this->root, *prev = this->root;
         while (now != NULL)
         {
             prev = now;
             now = now->get_next();
-            free (prev);
+            free(prev);
         }
-        free (this);
     }
 };
 
