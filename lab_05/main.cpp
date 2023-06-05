@@ -14,7 +14,7 @@ std::vector<std::string> exec_from_file(std::string filename) {
 
 int main() {
     auto commands = exec_from_file("../source.txt");
-    Commander commander;
+    Commander commander("log.txt");
     commander.make_commands(commands);
     return 0;
 }

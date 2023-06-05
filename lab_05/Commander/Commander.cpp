@@ -2,10 +2,22 @@
 // Created by timur on 02.06.23.
 //
 
+#include <sstream>
 #include "Commander.h"
 
+
 Commander::Commander() {
-    commands = std::vector<std::string> ();
+    this->threads = std::vector<std::thread> (0);
+    this->commands = std::vector<std::string> (0);
+    std::string log_file = "log.txt";
+    this->logfile = FileHandler(log_file);
+}
+
+
+Commander::Commander(std::string logfilename) {
+    this->threads = std::vector<std::thread> (0);
+    this->commands = std::vector<std::string> (0);
+    this->logfile = FileHandler(logfilename);
 }
 
 void Commander::make_commands(std::vector<std::string> commands) {
@@ -41,6 +53,10 @@ void Commander::make_commands(std::vector<std::string> commands) {
             }
         }
     }
+    size_t threads_amount = threads.size();
+//    std::cout << "{" << threads_amount << "}";
+    for (int i = 0; i < threads_amount; i++)
+        threads[i].join();
 }
 
 int Commander::command_type(std::string s) {
@@ -104,33 +120,79 @@ float Commander::execute_calculation(std::string s) {
 
     std::string command = delete_spaces(s);
     auto splitted = split_operation(command);
+
     if (splitted.size() != 3) {
-        std::cout << "Invalid expression1";
+        std::cout << "Invalid expression";
         exit(1);
     }
     if (!is_numeric(splitted[0]) || !is_numeric(splitted[1])) {
-        std::cout << "Invalid expression2";
+        std::cout << "Invalid expression";
         exit(1);
     }
     float x = std::stof(splitted[0]), y = std::stof(splitted[1]);
+    std::cout << "x = " << x << ", y = " << y << std::endl;
     switch(splitted[2][0]) {
-        case '+':
-            return (x + y);
-        case '-':
-            return x - y;
-        case '*':
-            return x * y;
+        case '+': {
+            float res;
+            threads.emplace_back(std::thread([&res, this, command](float x, float y)
+                {
+                    std::stringstream ss;
+                    ss << std::this_thread::get_id();
+                    uint64_t id = std::stoull(ss.str());
+                    log_operation(this->logfile, command, id);
+                    res = x + y;
+                }, x, y));
+            return res;
+        }
+
+        case '-': {
+            float res;
+            threads.emplace_back([&res, this, command](float x, float y)
+                {
+                    std::stringstream ss;
+                    ss << std::this_thread::get_id();
+                    uint64_t id = std::stoull(ss.str());
+                    log_operation(this->logfile, command, id);
+                    res = x - y;
+                }, x, y);
+            return res;
+        }
+
+        case '*': {
+            float res;
+            threads.emplace_back([&res, this, command](float x, float y)
+                {
+                    std::stringstream ss;
+                    ss << std::this_thread::get_id();
+                    uint64_t id = std::stoull(ss.str());
+                    log_operation(this->logfile, command, id);
+                    res = x * y;
+                }, x, y);
+            return res;
+        }
+
         case '/': {
             if (y == 0) {
                 std::cout << "Division by zero!";
                 exit(1);
             }
-            return x / y;
+            float res;
+            threads.emplace_back([&res, this, command](float x, float y)
+                {
+                    std::stringstream ss;
+                    ss << std::this_thread::get_id();
+                    uint64_t id = std::stoull(ss.str());
+                    log_operation(this->logfile, command, id);
+                    res = x / y;
+                }, x, y);
+            return res;
         }
+
         default: {
             std::cout << "Invalid expression";
             exit(1);
         }
+
     }
 }
 
@@ -214,6 +276,7 @@ std::string Commander::expression_handling(std::string expression) {
 void Commander::make_command(std::string command) {
     int ct = command_type(command);
     std::string argument = get_out_argument(command);
+//    std::cout << "{" << ct << "}{" << argument << "}";
     switch(ct) {
         case 2: {
             console_print(argument);
@@ -250,3 +313,11 @@ std::vector<int> Commander::extract_loop_info(std::string arg) {
     return int_args;
 }
 
+void log_operation(FileHandler logfile, std::string operation, uint64_t thread_id) {
+//    std::cout << "{" << thread_id << "}";
+    std::string info = operation;
+    info += " executed in thread with id ";
+    info += std::to_string(thread_id);
+    info += "\n";
+    logfile.write(info);
+}

@@ -5,7 +5,7 @@
 #include "FileHandler.h"
 
 FileHandler::FileHandler() {
-    std::cout << "Error occured! Please, enter a filename!";
+    this->path = "out.txt";
 }
 
 FileHandler::FileHandler(const std::string& p) {

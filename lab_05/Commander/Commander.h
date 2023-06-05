@@ -5,12 +5,17 @@
 #ifndef LAB_05_COMMANDER_H
 #define LAB_05_COMMANDER_H
 
+#include <thread>
+#include <string>
 #include "../FileHandler/FileHandler.h"
 
 class Commander {
 public:
+    std::vector<std::thread> threads;
     std::vector<std::string> commands;
+    FileHandler logfile;
     Commander();
+    Commander(std::string);
     void make_commands(std::vector<std::string>);
 
 private:
@@ -33,5 +38,8 @@ private:
     void file_print(std::string, std::string);
     void make_command(std::string);
 };
+
+
+void log_operation(FileHandler, std::string, uint64_t);
 
 #endif //LAB_05_COMMANDER_H
