@@ -1,4 +1,0 @@
-LOOP(1,10,3)
-PRINT(loop_console)
-LOOP(1,5)
-FPRINT("../looper_test.txt",7+11)
