@@ -1,0 +1,4 @@
+LOOP(1,10,3)
+PRINT(7*6)
+LOOP(1,5)
+FPRINT("../looper.txt",3+6)
